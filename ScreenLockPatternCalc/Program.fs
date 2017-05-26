@@ -81,10 +81,17 @@ let CalculateLockPatternPermCount rows columns =
     
     allPerms |> Seq.distinct |> Seq.length
 
+let p n r = 
+    seq{for i in (n-r+1)..n -> bigint(i)} |> Seq.fold (*) (bigint(1))
+let memcost (a:int) (b:int) =
+    let count = (a*b)
+    seq {for i in 1..count -> bigint(i)*(p count i)} |> Seq.fold (+) (bigint(0)) |> (*) (bigint(4))
+
 [<EntryPoint>]
 let main argv = 
     match argv with
     | [|Integer a; Integer b|] ->
+        memcost a b |> printfn "%A"
         CalculateLockPatternPermCount a b |> printfn "%A"
         0
     | _ -> failwith "arguments must be two integers"
