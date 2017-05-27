@@ -77,7 +77,7 @@ let CalculateLockPatternPermCount rows columns =
 
     let allPerms = perms (indices |> List.map (fun i -> [i]))
 
-    printfn "%A" allPerms
+//    printfn "%A" allPerms
     
     allPerms |> Seq.distinct |> Seq.length
 
@@ -92,6 +92,8 @@ let main argv =
     match argv with
     | [|Integer a; Integer b|] ->
         memcost a b |> printfn "%A"
+        let start = System.DateTime.Now;
         CalculateLockPatternPermCount a b |> printfn "%A"
+        printfn "Calculations took %A" (System.DateTime.Now - start)
         0
     | _ -> failwith "arguments must be two integers"
