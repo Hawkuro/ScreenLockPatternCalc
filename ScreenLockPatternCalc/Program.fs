@@ -74,8 +74,8 @@ let CalculateLockPatternPermCount rows columns =
     let rec perms ps =
 //        printfn "%A" ps
         seq { for p in ps do
-                yield! followingPerms p |> perms
                 yield p
+                yield! followingPerms p |> perms
         }
 
     let allPerms = perms (indices |> List.map (fun i -> [i]))
