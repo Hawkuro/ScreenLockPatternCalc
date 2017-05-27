@@ -36,37 +36,40 @@ let CalculateLockPatternPermCount rows columns =
     let indices = Seq.unfold generator 0 |> Seq.toList
     let coordsList = indices |> List.map toCoords
 
-    let expand a b =
+    let expand a b perm =
         let aC = toCoords a
         let bC = toCoords b
         let diff = subtractCoords bC aC
         let diffGcd = diff ||> gcd |> abs
         if diffGcd = 1 then
-            [a;b]
+            true
         else
 //            printfn "%A" aC
 //            printfn "%A" bC
 //            printfn "%A" diff
 //            printfn "%A" diffGcd
             let d = divideCoords diff diffGcd
-            seq {for i in 0..diffGcd -> addCoords aC (multiplyCoords d i)} |> Seq.map toIndex |> Seq.toList
+            let fullHead = 
+                seq {for i in 0..diffGcd -> addCoords aC (multiplyCoords d i)}
+                |> Seq.map toIndex
+                |> Seq.toList
+            ((Set.ofList fullHead) - (Set.ofList perm) = Set.empty)
 
-    let getFullPerm perm =
+    let keepPerm perm =
         // Assume tail is full
         match perm with
-        | a::[] -> perm
-        | [] -> perm
-        | a::b::tail -> List.append (expand a b) tail
+        | a::[] ->  true
+        | [] ->  true
+        | a::b::tail ->  expand a b perm
 
     let followingPerms perm = 
         indices
         |> List.except perm
-        |> List.map (
-            fun i ->
-                i::perm
-                |> getFullPerm
-                |> List.distinct
-            ) 
+        |> List.map (fun i -> i::perm) 
+        |> List.filter keepPerm
+//        |> List.map (fun i -> 
+//            printfn "%A" i
+//            i)
 
     let rec perms ps =
 //        printfn "%A" ps
@@ -79,7 +82,7 @@ let CalculateLockPatternPermCount rows columns =
 
 //    printfn "%A" allPerms
     
-    allPerms |> Seq.distinct |> Seq.length
+    allPerms |> Seq.length
 
 let p n r = 
     seq{for i in (n-r+1)..n -> bigint(i)} |> Seq.fold (*) (bigint(1))
