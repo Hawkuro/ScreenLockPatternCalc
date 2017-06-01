@@ -1,5 +1,9 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
+﻿open FSharp.Configuration
+open FSharp.Collections.ParallelSeq
+
+type Settings = AppSettings<"App.config">
+
+let maxThreads = Settings.MaxThreads
 
 let (|Integer|_|) (str: string) =
    let mutable intvalue = int 0
@@ -78,11 +82,16 @@ let CalculateLockPatternPermCount rows columns =
                 yield! followingPerms p |> perms
         }
 
-    let allPerms = perms (indices |> List.map (fun i -> [i]))
+    let allPerms =
+        followingPerms []
+        |> List.indexed
+        |> List.groupBy (fst >> (fun i -> i % maxThreads))
+        |> List.map (fun (m,list) -> List.map snd list)
+        |> PSeq.collect perms 
 
 //    printfn "%A" allPerms
     
-    allPerms |> Seq.length
+    allPerms |> PSeq.length
 
 let p n r = 
     seq{for i in (n-r+1)..n -> bigint(i)} |> Seq.fold (*) (bigint(1))
