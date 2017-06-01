@@ -1,28 +1,27 @@
 ﻿namespace ScreenLockPatternCalc
-#l "Utils.fs"
 
+#l "Utils.fs"
 open FSharp.Collections.ParallelSeq
 open Utils
 
 module LockPatternPermCounter = 
 
-    let maxThreads = Settings.MaxThreads
+    let _maxThreads = Settings.MaxThreads
 
     let upperLimitEstimate (a:int) (b:int) =
         let count = (a*b)
         seq {for i in 1..count -> (p count i)} |> Seq.fold (+) (bigint 0)
 
-    let CalculateLockPatternPermCount rows columns =
+    let calculateLockPatternPermCount rows columns =
         let toCoords ind =
             Coords(ind / columns, ind % columns)
         let toIndex (c:Coords) =
             c.x*columns + c.y
         let nodeCount = rows*columns
 
-        let indices = [for i in 0..(nodeCount-1) -> i]
-        let coordsList = indices |> List.map toCoords
+        let indices = [for i in 1..nodeCount -> i-1]
 
-        let expand a b perm =
+        let tailHasNoExtraNodes a b perm =
             let aC = toCoords a
             let bC = toCoords b
             let diff = bC - aC
@@ -38,16 +37,17 @@ module LockPatternPermCounter =
                 ((Set.ofList fullHead) - (Set.ofList perm) = Set.empty)
 
         let keepPerm perm =
-            // Assume tail is full
+            // All but newest two nodes have been checked for extra nodes
             match perm with
             | a::[] ->  true
             | [] ->  true
-            | a::b::tail ->  expand a b perm
+            | a::b::tail ->  tailHasNoExtraNodes a b perm
 
         let followingPerms perm = 
             indices
             |> List.except perm
             |> List.map (fun i -> i::perm) 
+            // Remove perms where the newest jumps over a node not already crossed
             |> List.filter keepPerm
 
         let rec perms ps =
@@ -59,7 +59,7 @@ module LockPatternPermCounter =
         let allPerms =
             followingPerms []
             |> List.indexed
-            |> List.groupBy (fst >> (fun i -> i % maxThreads))
+            |> List.groupBy (fst >> (fun i -> i % _maxThreads))
             |> List.map (fun (m,list) -> List.map snd list)
             |> PSeq.collect perms 
 
