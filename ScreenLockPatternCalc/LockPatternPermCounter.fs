@@ -14,34 +14,25 @@ module LockPatternPermCounter =
 
     let CalculateLockPatternPermCount rows columns =
         let toCoords ind =
-            ind / columns, ind % columns
-        let toIndex ((x,y) as coords) =
-            x*columns + y
+            Coords(ind / columns, ind % columns)
+        let toIndex (c:Coords) =
+            c.x*columns + c.y
         let nodeCount = rows*columns
-        let indexLimit = nodeCount-1
-        let generator state = 
-            if state < nodeCount then
-                Some(state,state+1)
-            else 
-                None
-        let indices = Seq.unfold generator 0 |> Seq.toList
+
+        let indices = [for i in 0..(nodeCount-1) -> i]
         let coordsList = indices |> List.map toCoords
 
         let expand a b perm =
             let aC = toCoords a
             let bC = toCoords b
-            let diff = subtractCoords bC aC
-            let diffGcd = diff ||> gcd |> abs
+            let diff = bC - aC
+            let diffGcd = diff.asTuple ||> gcd |> abs
             if diffGcd = 1 then
                 true
             else
-    //            printfn "%A" aC
-    //            printfn "%A" bC
-    //            printfn "%A" diff
-    //            printfn "%A" diffGcd
-                let d = divideCoords diff diffGcd
+                let d = diff / diffGcd
                 let fullHead = 
-                    seq {for i in 0..diffGcd -> addCoords aC (multiplyCoords d i)}
+                    seq {for i in 0..diffGcd -> aC + (d*i)}
                     |> Seq.map toIndex
                     |> Seq.toList
                 ((Set.ofList fullHead) - (Set.ofList perm) = Set.empty)
@@ -58,12 +49,8 @@ module LockPatternPermCounter =
             |> List.except perm
             |> List.map (fun i -> i::perm) 
             |> List.filter keepPerm
-    //        |> List.map (fun i -> 
-    //            printfn "%A" i
-    //            i)
 
         let rec perms ps =
-    //        printfn "%A" ps
             seq { for p in ps do
                     yield p
                     yield! followingPerms p |> perms
@@ -76,7 +63,5 @@ module LockPatternPermCounter =
             |> List.map (fun (m,list) -> List.map snd list)
             |> PSeq.collect perms 
 
-    //    printfn "%A" allPerms
-        
         allPerms |> PSeq.length
 

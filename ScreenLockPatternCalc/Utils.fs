@@ -18,12 +18,15 @@ module Utils =
             a
         else gcd b (a%b)
 
-    let subtractCoords (x1,y1) (x2,y2) =
-        (x1-x2,y1-y2)
-
-    let addCoords (x1,y1) (x2,y2) =
-        (x1+x2,y1+y2)
-
-    let divideCoords (x,y) d = (x/d,y/d)
-
-    let multiplyCoords (x,y) m = (x*m,y*m)
+    type Coords(x:int,y:int) =
+        member this.x = x
+        member this.y = y
+        static member (*) (c : Coords, m:int) =
+            Coords(m * c.x, m * c.y)
+        static member (/) (c : Coords, d:int) =
+            Coords(c.x / d, c.y / d)
+        static member (+) (a: Coords, b: Coords) = 
+            Coords(a.x+b.x,a.y+b.y)
+        static member (-) (a: Coords, b: Coords) = 
+            Coords(a.x-b.x,a.y-b.y)
+        member this.asTuple = (this.x,this.y)
