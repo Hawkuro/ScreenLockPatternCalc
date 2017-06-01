@@ -1,37 +1,16 @@
 ﻿namespace ScreenLockPatternCalc
-open FSharp.Configuration
+#l "Utils.fs"
+
 open FSharp.Collections.ParallelSeq
+open Utils
 
 module LockPatternPermCounter = 
-    type Settings = AppSettings<"App.config">
 
     let maxThreads = Settings.MaxThreads
 
-    let p n r = 
-        seq{for i in (n-r+1)..n -> bigint(i)} |> Seq.fold (*) (bigint(1))
-    let memcost (a:int) (b:int) =
+    let upperLimitEstimate (a:int) (b:int) =
         let count = (a*b)
-        seq {for i in 1..count -> bigint(i)*(p count i)} |> Seq.fold (+) (bigint(0)) |> (*) (bigint(4))
-
-    let (|Integer|_|) (str: string) =
-       let mutable intvalue = int 0
-       if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
-       else None
-
-    let rec gcd a b =
-        if b = 0 then
-            a
-        else gcd b (a%b)
-
-    let subtractCoords (x1,y1) (x2,y2) =
-        (x1-x2,y1-y2)
-
-    let addCoords (x1,y1) (x2,y2) =
-        (x1+x2,y1+y2)
-
-    let divideCoords (x,y) d = (x/d,y/d)
-
-    let multiplyCoords (x,y) m = (x*m,y*m)
+        seq {for i in 1..count -> (p count i)} |> Seq.fold (+) (bigint 0)
 
     let CalculateLockPatternPermCount rows columns =
         let toCoords ind =

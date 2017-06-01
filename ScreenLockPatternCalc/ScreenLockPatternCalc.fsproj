@@ -59,6 +59,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <Compile Include="Utils.fs" />
     <Compile Include="LockPatternPermCounter.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
