@@ -6,13 +6,11 @@ open Utils
 
 module LockPatternPermCounter = 
 
-    let _maxThreads = Settings.MaxThreads
-
     let upperLimitEstimate (a:int) (b:int) =
         let count = (a*b)
         seq {for i in 1..count -> (p count i)} |> Seq.fold (+) (bigint 0)
 
-    let calculateLockPatternPermCount rows columns =
+    let allDistinctPerms rows columns maxThreads =
         let toCoords ind =
             Coords(ind / columns, ind % columns)
         let toIndex (c:Coords) =
@@ -56,12 +54,14 @@ module LockPatternPermCounter =
                     yield! followingPerms p |> perms
             }
 
-        let allPerms =
-            followingPerms []
-            |> List.indexed
-            |> List.groupBy (fst >> (fun i -> i % _maxThreads))
-            |> List.map (fun (m,list) -> List.map snd list)
-            |> PSeq.collect perms 
+        followingPerms []
+        // Parallelize, split into maxThreads evenly sized (as possible) groups
+        |> List.indexed
+        |> List.groupBy (fst >> (fun i -> i % maxThreads))
+        |> List.map (fun (m,list) -> List.map snd list)
+        // Generate perms in parallel
+        |> PSeq.collect perms 
 
-        allPerms |> PSeq.length
+    let calculateLockPatternPermCount rows columns maxThreads =
+        allDistinctPerms rows columns maxThreads |> PSeq.length
 

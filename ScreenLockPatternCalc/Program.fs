@@ -16,7 +16,7 @@ module Program =
 
             let stopwatch = System.Diagnostics.Stopwatch.StartNew()
 
-            calculateLockPatternPermCount a b
+            calculateLockPatternPermCount a b Settings.MaxThreads
             |> printfn "A %A by %A grid yields %A distinct possible permutations" a b
             
             if Settings.PrintTime then
