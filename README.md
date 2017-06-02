@@ -1,4 +1,7 @@
 # ScreenLockPatternCalc
+
+![](http://i.imgur.com/Ez0vKQX.png)
+
 Calculates number of possible android screen lock patterns
 
 ## To build
