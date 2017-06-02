@@ -10,7 +10,7 @@ module LockPatternPermCounter =
         let count = (a*b)
         seq {for i in 1..count -> (p count i)} |> Seq.fold (+) (bigint 0)
 
-    let allDistinctPerms rows columns maxThreads =
+    let calculateLockPatternPermCount rows columns maxThreads =
         let toCoords ind =
             Coords(ind / columns, ind % columns)
         let toIndex (c:Coords) =
@@ -60,8 +60,6 @@ module LockPatternPermCounter =
         |> List.groupBy (fst >> (fun i -> i % maxThreads))
         |> List.map (fun (m,list) -> List.map snd list)
         // Generate perms in parallel
-        |> PSeq.collect perms 
-
-    let calculateLockPatternPermCount rows columns maxThreads =
-        allDistinctPerms rows columns maxThreads |> PSeq.length
+        |> PSeq.map (perms >> (PSeq.fold (fun acc _ -> acc + bigint 1) (bigint 0)))
+        |> PSeq.reduce (+)
 
